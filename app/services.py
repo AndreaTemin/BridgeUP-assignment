@@ -14,7 +14,7 @@ def update_source_weight_service(client_id: str, source_name: str, weight_update
 
     total_weight = sum(s["w"] for s in data.values()) - data[source_name]["w"] + weight_update.w
     if total_weight > 100:
-        raise HTTPException(400, "Weight of a source cannot exceed 100")
+        raise HTTPException(400, "Total source weight cannot exceed 100")
 
     data[source_name]["w"] = weight_update.w
     return data[source_name]

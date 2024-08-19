@@ -5,7 +5,6 @@ from app.data import data
 
 INITIAL_DATA = data.copy()
 
-
 client = TestClient(app)
 
 @pytest.fixture(autouse=True)
@@ -34,14 +33,22 @@ def test_update_source_weight_out_of_range_weight():
     # Weight above 100
     response = client.put("/client/test/weights/source/source-b", json={"w": 101})
     assert response.status_code == 400
+    assert response.json()["detail"] == "Weight must be between 0 and 100"
   
     # Weight below 0
     response = client.put("/client/test/weights/source/source-b", json={"w": -1})
     assert response.status_code == 400
+    assert response.json()["detail"] == "Weight must be between 0 and 100"
     
 def test_update_source_weight_source_not_found():
     response = client.put("/client/test/weights/source/source-z", json={"w": 80})
     assert response.status_code == 404
+    assert response.json()["detail"] == "Source not found"
+
+def test_update_source_weight_exceeds_total():
+    response = client.put("/client/test/weights/source/source-a", json={"w": 90})
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Total source weight cannot exceed 100"
     
 
 # Category update 
@@ -59,15 +66,24 @@ def test_update_category_weight_out_of_range_weight():
     # Weight above 100
     response = client.put("/client/test/weights/source/source-b/category/kitchen-tools", json={"w": 101})
     assert response.status_code == 400
+    assert response.json()["detail"] == "Weight must be between 0 and 100"
 
     # Weight below 0
     response = client.put("/client/test/weights/source/source-b/category/kitchen-tools", json={"w": -1})
     assert response.status_code == 400
+    assert response.json()["detail"] == "Weight must be between 0 and 100"
 
 def test_update_category_weight_source_not_found():
     response = client.put("/client/test/weights/source/source-b/category/kitchen-bulls", json={"w": 80})
     assert response.status_code == 404
+    assert response.json()["detail"] == "Category not found"
 
+
+def test_update_category_weight_exceeds_total():
+    response = client.put("/client/test/weights/source/source-b/category/kitchen-tools", json={"w": 90})
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Total category weight exceeds 100 within the source: source-b"
+    
 
 # Campaign update
 def test_update_campaign_weight():
@@ -83,12 +99,19 @@ def test_update_campagin_weight_out_of_range_weight():
     # Weight above 100
     response = client.put("/client/test/weights/source/source-b/category/kitchen-tools/campaign/electric-garlic-chopper", json={"w": 101})
     assert response.status_code == 400
+    assert response.json()["detail"] == "Weight must be between 0 and 100"
 
     # Weight below 0
     response = client.put("/client/test/weights/source/source-b/category/kitchen-tools/campaign/electric-garlic-chopper", json={"w": -1})
     assert response.status_code == 400
+    assert response.json()["detail"] == "Weight must be between 0 and 100"
 
 def test_update_campagin_weight_source_not_found():
     response = client.put("/client/test/weights/source/source-b/category/kitchen-tools/campaign/not-a-campaign", json={"w": 80})
     assert response.status_code == 404
+    assert response.json()["detail"] == "Campaign not found"
 
+def test_update_campaign_weight_does_not_equal_100():
+    response = client.put("/client/test/weights/source/source-b/category/gadgets/campaign/smartphone-stand", json={"w": 40})
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Total campaign weight must equal 100 within the category"
