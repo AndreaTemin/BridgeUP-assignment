@@ -5,106 +5,77 @@ Home Assignment: Building an API in Python for Managing Weights (`w`)
 
 Create a RESTful API using Python (with Flask or FastAPI) to manage the weights (`w`) of a campaign, category, or source within a given JSON structure. The API should allow updating these weights with specific limitations and validation checks.
 
-**Requirements:**
+- **Source weights**: Cannot exceed a total of 100.
+- **Category weights**: Within a source, the total weight cannot exceed 100.
+- **Campaign weights**: Within a category, the total weight must equal exactly 100.
 
-1. **API Endpoints**:
-   - `GET /client/{clientId}/weights`: Retrieve the entire structure with all current weights.
-   - `PUT /client/{clientId}/weights`: Update the weights (`w`) of a source / a category or of a campaign within a category.
+## Requirements
 
-2. **Validation Checks**:
-   - The total weight of all campaigns within a category must sum to 100.
-   - The total weight of all categories within a source must sum to 100.
-   - The total weight of all sources must be a non-negative number, and individual updates should not cause the weight to go below zero.
-   - The weight (`w`) for any entity should be between 0 and 100.
-
-3. **Error Handling**:
-   - Return appropriate HTTP status codes and error messages for invalid operations, such as attempting to set a weight outside the 0-100 range or causing an aggregate weight to exceed 100.
-
-4. **Initial Data Structure**:
-   - The API should start with a predefined JSON structure (like the one provided earlier).
-
-**Implementation Details:**
-
-- **Framework**: You can use either Flask or FastAPI or others.
-- **Data Storage**: Use an in-memory data structure (e.g., a Python dictionary) to represent the JSON structure. Optionally, implement persistence using a file or database.
-- **Testing**: Provide a set of unit tests or API tests to validate that the API functions correctly.
+- Python 3.8+
+- FastAPI
+- Pydantic
+- Uvicorn (for running the server)
+- Pytest (for testing)
 
 
+## Running on AWS
+The server is running on aws on `44.222.239.1:8000`
+APIs:
+
+  `GET: /client/{client_id}/weights`
+  
+  `PUT: /client/{client_id}/weights/source/{source_name}`
+  
+  `PUT: /client/{client_id}/weights/source/{source_name}/category/{category_name}`
+
+  `​PUT: /client​/{client_id}​/weights​/source​/{source_name}​/category​/{category_name}​/campaign​/{campaign_name}`
+
+  The update operation will require a simple payload: `{"w": 40}`
 
 
-### Example Data Structure (for Reference)
+## Local installation
+1. **Clone the repository:**
 
-```json
-{
-  "source-a": {
-    "w": 0
-  },
-  "source-b": {
-    "w": 100,
-    "categories": {
-      "kitchen-tools": {
-        "w": 20,
-        "campaigns": {
-          "electric-garlic-chopper": {
-            "w": 100
-          }
-        }
-      },
-      "gadgets": {
-        "w": 50,
-        "campaigns": {
-          "smartphone-stand": {
-            "w": 20
-          },
-          "wireless-charger": {
-            "w": 50
-          },
-          "wireless-gadget-01": {
-            "w": 50
-          }
-        }
-      }
-    }
-  }
-}
-```
+   ```sh
+   git clone https://github.com/yourusername/weight-management-api.git
+   cd weight-management-api
 
-### Detailed Task Breakdown
-1. **Setup the Environment**:
-   - Install necessary dependencies (Flask or FastAPI).
-   - Create a basic project structure.
+2. **Create and activate a virtual env:**
+   ```sh
+   python -m venv venv
+   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 
-2. **Define the Data Structure**:
-   - Use a Python dictionary to represent the initial JSON structure.
-3. **Implement the API Endpoints**:
-   - `GET /weights`: Return the entire JSON structure.
-   - `PUT /weights/source/{source_name}`: Update the `w` of a source.
-     - Validate that the updated weight does not cause the total weight to exceed 100.
-   - `PUT /weights/source/{source_name}/category/{category_name}`: Update the `w` of a category.
-     - Validate that the updated weight does not cause the total weight of categories within the source to exceed 100.
-   - `PUT /weights/source/{source_name}/category/{category_name}/campaign/{campaign_name}`: Update the `w` of a campaign.
-     - Ensure that the total weight of campaigns within the category remains 100.
+3. **Install requirements:**
+   `pip install -r requirements.txt`
 
-4. **Validation and Error Handling**:
-   - Implement validation logic to ensure weights are within the allowed range and the totals meet the requirements.
-   - Handle cases where the entity being updated does not exist.
 
-5. **Testing**:
-   - Write tests to cover successful updates, boundary cases, and invalid operations.
+4. **Running server:**
+    `uvicorn app.main:app --reload`
 
-### Deliverables
+2. **Running tests:**
+    `pytests`
 
-1. **Source Code**: The complete source code of the API.
-2. **Instructions**: A README file with instructions on how to run the API locally and how to test it.
-3. **Tests**: Unit tests or API tests validating the functionality of the API.
-4. **Sample Requests**: Example curl commands or Postman collection to demonstrate how to interact with the API.
-5. A list of edge cases that are not covered by the code and you think should be on the next stage of this service development
+3. **Project structure:**
+    ```sh
+    ├── app
+    │   ├── __init__.py           
+    │   ├── main.py               
+    │   ├── models.py            
+    │   ├── services.py          
+    │   ├── data.py               
+    │   ├── custom_error.py       
+    |   └── tests
+    │       ├── __init__.py           
+    │       └── test_main.py          
+    ├── requirements.txt          
+    └── README.md                 
 
-### Evaluation Criteria
+## Next steps
 
-- **Correctness**: The API should correctly implement the requirements and handle validation properly.
-- **Code Quality**: Code should be clean, well-organized, and follow best practices.
-- **Error Handling**: The API should provide informative error messages and handle edge cases gracefully.
-- **Testing**: Adequate test coverage should be provided to ensure the API functions as expected.
+1. Supporting Concurrent Updates
+Simultaneous updates to the same source, category, or campaign could lead to data inconsistencies.
+Need to implement a mechanisms to handle concurrent updates.
 
-This assignment will assess your ability to create a robust API with validation logic and handle various edge cases while maintaining data integrity.
+2. Implementation of Authorization and Authentication
+The project lacks completely of authorization checks could expose sensitive data or allow unauthorized changes.
+
